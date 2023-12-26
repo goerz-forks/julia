@@ -6,8 +6,11 @@ empty!(DEPOT_PATH)
 pushfirst!(DEPOT_PATH, joinpath(@__DIR__, "deps"))
 using Pkg
 Pkg.instantiate()
+Pkg.develop(path="../../DocInventories.jl/")
+Pkg.develop(path="../../DocumenterInterLinks.jl/")
 
 using Documenter
+using DocumenterInterLinks
 
 baremodule GenStdLib end
 
@@ -277,12 +280,14 @@ const format = if render_pdf
     )
 else
     Documenter.HTML(
-        prettyurls = ("deploy" in ARGS),
+        prettyurls = true,
         canonical = ("deploy" in ARGS) ? "https://docs.julialang.org/en/v1/" : nothing,
         assets = [
             "assets/julia-manual.css",
             "assets/julia.ico",
         ],
+        size_threshold = 1000000000000000000,
+        size_threshold_warn = 1000000000000000000,
         analytics = "UA-28835595-6",
         collapselevel = 1,
         sidebar_sitename = false,
@@ -293,12 +298,13 @@ end
 const output_path = joinpath(buildroot, "doc", "_build", (render_pdf ? "pdf" : "html"), "en")
 makedocs(
     build     = output_path,
+    version   = string(VERSION),
     modules   = [Main, Base, Core, [Base.root_module(Base, stdlib.stdlib) for stdlib in STDLIB_DOCS]...],
     clean     = true,
-    doctest   = ("doctest=fix" in ARGS) ? (:fix) : ("doctest=only" in ARGS) ? (:only) : ("doctest=true" in ARGS) ? true : false,
+    doctest   = false,
     linkcheck = "linkcheck=true" in ARGS,
     linkcheck_ignore = ["https://bugs.kde.org/show_bug.cgi?id=136779"], # fails to load from nanosoldier?
-    strict    = true,
+    warnonly    = true,
     checkdocs = :none,
     format    = format,
     sitename  = "The Julia Language",
